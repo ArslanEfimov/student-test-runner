@@ -1,0 +1,82 @@
+name: Student Coverage
+
+# run-name is what we search by in GitHubActionsClientImpl.findWorkflowRunId()
+run-name: coverage-${{ inputs.run_id }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: 'Coverage run UUID (from coverage_runs table)'
+        required: true
+      repo_url:
+        description: 'Student GitHub repository URL'
+        required: true
+      lab_number:
+        description: 'Lab number'
+        required: true
+
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      # Checkout our repo to get the helper scripts
+      - name: Checkout analyzer repo
+        uses: actions/checkout@v4
+        with:
+          path: analyzer
+
+      - name: Clone student repository
+        run: git clone --depth=1 "${{ inputs.repo_url }}" student-repo
+
+      # Install both JDK versions: 21 as default, 17 available for Gradle toolchains
+      - name: Set up JDK 17 and 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: |
+            17
+            21
+          distribution: temurin
+
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('student-repo/**/*.gradle*', 'student-repo/**/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: maven-${{ hashFiles('student-repo/**/pom.xml') }}
+          restore-keys: maven-
+
+      # Run tests and generate JaCoCo XML reports.
+      # continue-on-error: true — we still want to collect partial coverage even if tests fail.
+      - name: Run tests with coverage
+        continue-on-error: true
+        env:
+          JACOCO_INIT_SCRIPT: ${{ github.workspace }}/analyzer/.github/scripts/jacoco-init.gradle
+          GRADLE_OPTS: "-Xmx512m -Dorg.gradle.daemon=false"
+        run: |
+          cd student-repo
+          bash ${{ github.workspace }}/analyzer/.github/scripts/run-coverage.sh
+
+      - name: Parse coverage reports and build artifact JSON
+        run: |
+          python3 ${{ github.workspace }}/analyzer/.github/scripts/parse_coverage.py \
+            --project-dir ${{ github.workspace }}/student-repo \
+            --output ${{ github.workspace }}/coverage-result.json
+
+      # Artifact name matches RUN_NAME_PREFIX + coverageRunId used in GitHubActionsClientImpl
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-${{ inputs.run_id }}
+          path: coverage-result.json
+          retention-days: 7

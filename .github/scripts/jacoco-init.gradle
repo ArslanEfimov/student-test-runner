@@ -1,0 +1,17 @@
+allprojects {
+    plugins.withType(JavaPlugin) {
+        apply plugin: 'jacoco'
+
+        test {
+            finalizedBy jacocoTestReport
+        }
+
+        jacocoTestReport {
+            dependsOn test
+            reports {
+                xml.required = true
+                html.required = false
+            }
+        }
+    }
+}
