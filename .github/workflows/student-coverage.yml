@@ -12,6 +12,10 @@ on:
       repo_url:
         description: 'Student GitHub repository URL'
         required: true
+      branch:
+        description: 'Branch to clone (optional, defaults to repo default branch)'
+        required: false
+        default: ''
       lab_number:
         description: 'Lab number'
         required: true
@@ -29,7 +33,13 @@ jobs:
           path: analyzer
 
       - name: Clone student repository
-        run: git clone --depth=1 "${{ inputs.repo_url }}" student-repo
+        run: |
+          if [ -n "${{ inputs.branch }}" ]; then
+            git clone --depth=1 --branch "${{ inputs.branch }}" "${{ inputs.repo_url }}" student-repo
+          else
+            git clone --depth=1 "${{ inputs.repo_url }}" student-repo
+          fi
+      
 
       # Install both JDK versions: 21 as default, 17 available for Gradle toolchains
       - name: Set up JDK 17 and 21
