@@ -11,6 +11,7 @@
       ./gradlew \
           --init-script "$JACOCO_INIT_SCRIPT" \
           test jacocoTestReport \
+          -x jacocoTestCoverageVerification \
           --continue \
           -x javadoc \
           --no-daemon || true

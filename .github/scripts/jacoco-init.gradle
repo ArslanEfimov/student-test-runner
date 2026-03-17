@@ -1,17 +1,26 @@
 gradle.allprojects { project ->
     project.plugins.withId('java') {
-        project.apply plugin: 'jacoco'
+        // Only apply if JaCoCo is not already configured by the student
+        if (!project.plugins.hasPlugin('jacoco')) {
+            project.apply plugin: 'jacoco'
 
-        project.tasks.withType(Test).configureEach {
-            finalizedBy project.tasks.withType(JacocoReport)
-        }
+            project.tasks.withType(Test).configureEach {
+                finalizedBy project.tasks.withType(JacocoReport)
+            }
 
-        project.tasks.withType(JacocoReport).configureEach {
-            reports {
-                xml.required = true
-                html.required = false
+            project.tasks.withType(JacocoReport).configureEach {
+                reports {
+                    xml.required = true
+                    html.required = false
+                }
+            }
+        } else {
+            // JaCoCo already configured — just ensure XML report is enabled
+            project.tasks.withType(JacocoReport).configureEach {
+                reports.xml.required = true
             }
         }
     }
 }
+
 
