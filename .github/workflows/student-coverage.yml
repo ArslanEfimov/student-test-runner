@@ -42,12 +42,13 @@ jobs:
       
 
       # Install both JDK versions: 21 as default, 17 available for Gradle toolchains
-      - name: Set up JDK 17 and 21
+      - name: Set up JDK 17 and 21 and 24
         uses: actions/setup-java@v4
         with:
           java-version: |
             17
             21
+            24
           distribution: temurin
 
       - name: Cache Gradle packages
