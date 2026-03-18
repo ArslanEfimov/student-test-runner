@@ -19,6 +19,9 @@ on:
       lab_number:
         description: 'Lab number'
         required: true
+      java_version:
+        description: 'Java version (17, 21, 24)'
+        required: true
 
 jobs:
   coverage:
@@ -41,14 +44,10 @@ jobs:
           fi
       
 
-      # Install both JDK versions: 21 as default, 17 available for Gradle toolchains
-      - name: Set up JDK 17 and 21 and 24
+      - name: Set up JDK ${{ inputs.java_version }}
         uses: actions/setup-java@v4
         with:
-          java-version: |
-            17
-            21
-            24
+          java-version: ${{ inputs.java_version }}
           distribution: temurin
 
       - name: Cache Gradle packages
