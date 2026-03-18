@@ -19,22 +19,29 @@
   }
 
   run_maven() {
-      local dir=$1
-      echo "=== Maven: $dir ==="
-      pushd "$dir" > /dev/null
-      local MVN="mvn"
-      if [ -f "mvnw" ]; then
-          chmod +x mvnw
-          MVN="./mvnw"
-      fi
-      $MVN \
-          org.jacoco:jacoco-maven-plugin:0.8.11:prepare-agent \
-          test \
-          org.jacoco:jacoco-maven-plugin:0.8.11:report \
-          -Dmaven.test.failure.ignore=true \
-          -q || true
-      popd > /dev/null
-  }
+        local dir=$1
+        echo "=== Maven: $(get_project_name "$dir") ==="
+        pushd "$dir" > /dev/null
+        local MVN="mvn"
+        if [ -f "mvnw" ]; then
+            chmod +x mvnw
+            MVN="./mvnw"
+        fi
+
+        if grep -q "jacoco-maven-plugin" pom.xml 2>/dev/null; then
+            $MVN test org.jacoco:jacoco-maven-plugin:report \
+                -Dmaven.test.failure.ignore=true \
+                -q || true
+        else
+            $MVN org.jacoco:jacoco-maven-plugin:0.8.11:prepare-agent \
+                test \
+                org.jacoco:jacoco-maven-plugin:0.8.11:report \
+                -Dmaven.test.failure.ignore=true \
+                -q || true
+        fi
+
+        popd > /dev/null
+    }
 
   # 1. Check root
   if [ -f "gradlew" ]; then
