@@ -74,6 +74,7 @@ jobs:
         env:
           JACOCO_INIT_SCRIPT: ${{ github.workspace }}/analyzer/.github/scripts/jacoco-init.gradle
           GRADLE_OPTS: "-Xmx512m -Dorg.gradle.daemon=false"
+          REPO_URL: ${{ inputs.repo_url }}
         run: |
           cd student-repo
           bash ${{ github.workspace }}/analyzer/.github/scripts/run-coverage.sh
