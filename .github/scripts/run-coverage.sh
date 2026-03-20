@@ -13,9 +13,12 @@
       echo "=== Gradle: $dir ==="
       pushd "$dir" > /dev/null
       [ "$gradle_cmd" = "./gradlew" ] && chmod +x gradlew
+      # Run tests; the init-script's finalizedBy will trigger jacocoTestReport automatically.
+      # -x jacocoTestCoverageVerification: skip coverage thresholds (student may set high %).
+      # --continue: collect partial coverage even when some tests fail (e.g. infra deps missing).
       $gradle_cmd \
           --init-script "$JACOCO_INIT_SCRIPT" \
-          test jacocoTestReport \
+          test \
           -x jacocoTestCoverageVerification \
           --continue \
           -x javadoc \
@@ -33,16 +36,16 @@
           MVN="./mvnw"
       fi
 
+      # -Dmaven.test.failure.ignore=true: collect coverage even when tests fail.
+      # No -q: keep output visible so failures are diagnosable.
       if grep -q "jacoco-maven-plugin" pom.xml 2>/dev/null; then
           $MVN test org.jacoco:jacoco-maven-plugin:report \
-              -Dmaven.test.failure.ignore=true \
-              -q || true
+              -Dmaven.test.failure.ignore=true || true
       else
           $MVN org.jacoco:jacoco-maven-plugin:0.8.11:prepare-agent \
               test \
               org.jacoco:jacoco-maven-plugin:0.8.11:report \
-              -Dmaven.test.failure.ignore=true \
-              -q || true
+              -Dmaven.test.failure.ignore=true || true
       fi
       popd > /dev/null
   }
@@ -116,7 +119,8 @@
               local MVN="mvn"
               [ -f "$dir/mvnw" ] && chmod +x "$dir/mvnw" && MVN="$dir/mvnw"
               pushd "$dir" > /dev/null
-              $MVN install -DskipTests -q || true
+              # install into local ~/.m2 so inter-module dependencies resolve
+              $MVN install -DskipTests || true
               popd > /dev/null
           done
       fi

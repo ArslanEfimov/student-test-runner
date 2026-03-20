@@ -61,13 +61,25 @@ def module_name_from_path(module_dir: Path, project_dir: Path) -> str:
 
 def collect_gradle(project_dir: Path) -> list[dict]:
     results = []
-    # Gradle default: build/reports/jacoco/test/jacocoTestReport.xml
-    for jacoco_xml in project_dir.rglob("build/reports/jacoco/test/jacocoTestReport.xml"):
-        module_dir = jacoco_xml.parents[4]  # .../module/build/reports/jacoco/test/file → module
-        name       = module_name_from_path(module_dir, project_dir)
-        coverage   = parse_jacoco_coverage(jacoco_xml)
+    seen_modules: set[Path] = set()
 
-        test_dir   = module_dir / "build" / "test-results" / "test"
+    # Search for any JaCoCo XML under build/reports/jacoco/ (handles custom task names too)
+    for jacoco_xml in project_dir.rglob("build/reports/jacoco/**/*.xml"):
+        # Resolve module dir: go up from the xml to the module root (above build/)
+        try:
+            build_index = jacoco_xml.parts.index("build")
+            module_dir = Path(*jacoco_xml.parts[:build_index])
+        except (ValueError, TypeError):
+            continue
+
+        if module_dir in seen_modules:
+            continue
+        seen_modules.add(module_dir)
+
+        name     = module_name_from_path(module_dir, project_dir)
+        coverage = parse_jacoco_coverage(jacoco_xml)
+
+        test_dir = module_dir / "build" / "test-results" / "test"
         total, failed, log = parse_junit_results(test_dir)
 
         results.append(_entry(name, coverage, total, failed, log))
