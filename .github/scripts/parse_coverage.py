@@ -63,7 +63,7 @@ def collect_gradle(project_dir: Path) -> list[dict]:
     results = []
     seen_modules: set[Path] = set()
 
-    # Search for any JaCoCo XML under build/reports/jacoco/ (handles custom task names too)
+   
     for jacoco_xml in project_dir.rglob("build/reports/jacoco/**/*.xml"):
         # Resolve module dir: go up from the xml to the module root (above build/)
         try:
@@ -88,7 +88,7 @@ def collect_gradle(project_dir: Path) -> list[dict]:
 
 def collect_maven(project_dir: Path) -> list[dict]:
     results = []
-    # Maven default: target/site/jacoco/jacoco.xml
+    
     for jacoco_xml in project_dir.rglob("target/site/jacoco/jacoco.xml"):
         module_dir = jacoco_xml.parents[3]  # .../module/target/site/jacoco/file → module
         name       = module_name_from_path(module_dir, project_dir)
@@ -122,7 +122,7 @@ def main():
     if not results:
         results = collect_maven(project_dir)
 
-    # Fallback: no reports found at all — tests likely didn't run
+    
     if not results:
         results = [_entry(
             module_name = project_dir.name,
