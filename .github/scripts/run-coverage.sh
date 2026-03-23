@@ -3,9 +3,6 @@
                                                                                                                                                                            
   PROJECT_ROOT=$(pwd)                                                                                                                                                    
                                                                                                                                                                            
-  # ---------------------------------------------------------------------------                                                                                            
-  # Runners
-  # ---------------------------------------------------------------------------
 
   run_gradle() {
       local dir=$1
@@ -50,16 +47,12 @@
       popd > /dev/null
   }
 
-  # ---------------------------------------------------------------------------
-  # Discovery
-  # ---------------------------------------------------------------------------
-
   find_and_run() {
       local found=false
       local -a gradle_dirs=()
       local -a maven_dirs=()
 
-      # Gradle: only roots have gradlew
+     
       while IFS= read -r gradlew_path; do
           gradle_dirs+=("$(dirname "$gradlew_path")")
           found=true
@@ -70,7 +63,7 @@
           -not -path "*/.git/*" \
           | sort)
 
-      # Gradle fallback: build file present but no gradlew
+     
       if [ ${#gradle_dirs[@]} -eq 0 ]; then
           for marker in "settings.gradle" "settings.gradle.kts" "build.gradle" "build.gradle.kts"; do
               if [ -f "$PROJECT_ROOT/$marker" ]; then
@@ -82,7 +75,7 @@
           done
       fi
 
-      # Maven: skip submodules and dirs already covered by Gradle
+     
       while IFS= read -r pom_path; do
           local dir
           dir=$(dirname "$pom_path")
@@ -101,7 +94,7 @@
           exit 1
       fi
 
-      # Phase 1: pre-build without tests (only when multiple independent modules)
+     
       if [ ${#gradle_dirs[@]} -gt 1 ]; then
           echo "=== Gradle: pre-building all modules ==="
           for dir in "${gradle_dirs[@]}"; do
@@ -125,7 +118,7 @@
           done
       fi
 
-      # Phase 2: tests with coverage
+      
       for dir in "${gradle_dirs[@]}"; do
           if [ -f "$dir/gradlew" ]; then
               run_gradle "$dir" "./gradlew"
