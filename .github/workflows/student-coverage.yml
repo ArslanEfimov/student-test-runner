@@ -1,6 +1,5 @@
 name: Student Coverage
 
-# run-name is what we search by in GitHubActionsClientImpl.findWorkflowRunId()
 run-name: coverage-${{ inputs.run_id }}
 
 on:
@@ -66,8 +65,7 @@ jobs:
           key: maven-${{ hashFiles('student-repo/**/pom.xml') }}
           restore-keys: maven-
 
-      # Run tests and generate JaCoCo XML reports.
-      # continue-on-error: true — we still want to collect partial coverage even if tests fail.
+      
       - name: Run tests with coverage
         continue-on-error: true
         env:
@@ -83,7 +81,7 @@ jobs:
             --project-dir ${{ github.workspace }}/student-repo \
             --output ${{ github.workspace }}/coverage-result.json
 
-      # Artifact name matches RUN_NAME_PREFIX + coverageRunId used in GitHubActionsClientImpl
+      
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
