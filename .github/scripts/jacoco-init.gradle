@@ -4,7 +4,7 @@ gradle.allprojects { project ->
             project.apply plugin: 'jacoco'
         }
 
-        // Configure after jacoco plugin is available (whether we just applied it or it was already there)
+    
         project.plugins.withId('jacoco') {
             project.tasks.withType(Test).configureEach { testTask ->
                 testTask.finalizedBy project.tasks.withType(JacocoReport)
